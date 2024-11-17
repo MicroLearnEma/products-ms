@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { HttpStatus, ValidationPipe } from '@nestjs/common';
 import { env } from './config';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { MicroserviceOptions, RpcException, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, {
@@ -15,7 +15,9 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
-      errorHttpStatusCode: HttpStatus.PRECONDITION_FAILED
+      exceptionFactory(errors) {
+          throw new RpcException({ status: HttpStatus.PRECONDITION_FAILED, message: errors })
+      },
     })
   )
   await app.listen();
